@@ -26,3 +26,39 @@ This project allows you to explore top stories on Hacker News with a clean and s
 ```bash
 git clone https://github.com/your-username/hacker-news-explorer.git
 cd hacker-news-explorer
+```
+
+Add your changes, such as custom styling or additional features.
+
+Push the changes to your GitHub repository:
+```bash
+git add .
+git commit -m "Add customizations"
+git push origin main
+```
+
+## Netlify Deployment
+Go to Netlify and create an account if you don't have one.
+
+Click on "New site from Git" on the Netlify dashboard.
+
+Connect your GitHub account and select the forked repository.
+
+Netlify will automatically detect the build settings. If not, ensure the following settings:
+
+Build Command: Leave it empty or use the default if your project doesn't require a specific build command.
+Publish Directory: Leave it empty or set it to the appropriate directory if you have one.
+Functions Directory: Leave it empty if you're not using serverless functions.
+Click "Deploy" to deploy your site.
+
+## Usage
+Your Hacker News Explorer site is now live! Visit the provided Netlify link to explore the latest Hacker News stories. Any changes you make to your GitHub repository will trigger automatic updates on Netlify.
+
+## Contributing
+Feel free to contribute to this project by opening issues or submitting pull requests. Your contributions are welcome!
+
+## License
+This project is licensed under the MIT License.
+
+
+

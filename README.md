@@ -24,7 +24,7 @@ This project allows you to explore top stories on Hacker News with a clean and s
 2. Clone the forked repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/hacker-news-explorer.git
+git clone https://github.com/Wasserpuncher/hacker-news-explorer.git
 cd hacker-news-explorer
 ```
 

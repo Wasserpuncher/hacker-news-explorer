@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Explore the latest Hacker News, search for specific topics, and stay informed with top stories and discussions in the tech world.">
+
+    <title>Hacker News Explorer</title>
+
+    <style>
+        body {
+            background-color: #121212;
+            color: #ddd;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            line-height: 1.6;
+        }
+
+        h1, h2 {
+            color: #4caf50;
+            text-align: center;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Stilregeln für die Hacker News Einbettung */
+        #hacker-news-widget {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .story {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .tags, .category {
+            color: #888;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+
+        #sort-select, #filter-select {
+            margin-top: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        #dark-mode-toggle {
+            padding: 8px;
+            margin-top: 10px;
+            box-sizing: border-box;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        #pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #pagination button {
+            padding: 8px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        #pagination span {
+            margin: 0 10px;
+        }
+
+        #load-more {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #load-more button {
+            padding: 8px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Welcome to the Hacker News Explorer</h1>
+
+    <input type="text" id="search-input" placeholder="Search for topics">
+
+    <select id="sort-select">
+        <option value="default">Sort by: Default</option>
+        <option value="comments">Sort by: Comments</option>
+    </select>
+
+    <select id="filter-select">
+        <option value="all">Filter by: All</option>
+        <option value="positive">Filter by: Positive Points</option>
+        <option value="zero">Filter by: Zero Points</option>
+        <option value="negative">Filter by: Negative Points</option>
+    </select>
+
+    <button id="dark-mode-toggle">Toggle Dark Mode</button>
+
+    <div id="hacker-news-widget">
+        <!-- Hier wird der Inhalt der Hacker News Einbettung erscheinen -->
+    </div>
+
+    <div id="pagination">
+        <button id="prev-page" disabled>Previous Page</button>
+        <span>Page <span id="current-page">1</span></span>
+        <button id="next-page">Next Page</button>
+    </div>
+
+    <div id="load-more">
+        <button id="load-more-btn">Load More Stories</button>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const storiesPerPage = 10;
+
+        // JavaScript-Code, um die Hacker News Daten abzurufen und anzuzeigen
+        function fetchHackerNews(page = 1) {
+            const startIndex = (page - 1) * storiesPerPage;
+            fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
+                .then(response => response.json())
+                .then(topStoryIds => {
+                    // Wähle die Top-Stories für die aktuelle Seite aus
+                    const selectedStoryIds = topStoryIds.slice(startIndex, startIndex + storiesPerPage);
+
+                    // Für jede Story die Daten abrufen
+                    Promise.all(selectedStoryIds.map(storyId =>
+                        fetch(`https://hacker-news.firebaseio.com/v0/item/${storyId}.json`)
+                            .then(response => response.json())
+                    ))
+                    .then(stories => {
+                        // Hier können Sie den HTML-Inhalt der Einbettung erstellen
+                        const htmlContent = `
+                            <h2>Top Stories on Hacker News</h2>
+                            ${stories.map(story =>
+                                `<div class="story">
+                                    <a href="${story.url}" target="_blank">${story.title}</a><br>
+                                    <span class="points">Points: ${story.score}</span><br>
+                                    <span class="upvotes">Upvotes: ${story.score}</span><br>
+                                    <span class="downvotes">Downvotes: ${story.descendants - story.score}</span><br>
+                                    <span class="comment">Comments: ${story.descendants}</span><br>
+                                    <span class="details">Author: <span class="author-info" onclick="showAuthorInfo('${story.by}')">${story.by}</span>, Time: ${new Date(story.time * 1000).toLocaleString()}</span><br>
+                                    <span class="comment"><a href="https://news.ycombinator.com/item?id=${story.id}" target="_blank">Open Comments</a></span>
+                                </div>`
+                            ).join('')}
+                        `;
+
+                        // Den Inhalt in das HTML-Div einfügen
+                        document.getElementById('hacker-news-widget').innerHTML = htmlContent;
+
+                        // Aktualisiere die Pagination-Buttons
+                        updatePaginationButtons();
+                    });
+                })
+                .catch(error => console.error('Error fetching Hacker News:', error));
+        }
+
+        // Funktion zum Aktualisieren der Seitennummeranzeige
+        function updatePageNumber() {
+            document.getElementById('current-page').innerText = currentPage;
+        }
+
+        // Funktion zum Aktualisieren der Pagination-Buttons
+        function updatePaginationButtons() {
+            const prevButton = document.getElementById('prev-page');
+            const nextButton = document.getElementById('next-page');
+
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = false;  // Setze auf "false", da wir annehmen, dass es immer eine nächste Seite gibt.
+        }
+
+        // Funktion zum Aktualisieren des Dark-Mode
+        function updateDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        // Funktion für die Suche
+        function searchHackerNews(query) {
+            // Implementieren Sie hier die Logik für die Suche
+            // Für dieses Beispiel wird nur eine Konsolenausgabe gemacht
+            console.log('Searching for:', query);
+        }
+
+        // Funktion zum Sortieren der Geschichten nach der Anzahl der Kommentare
+        function sortStoriesByComments(stories) {
+            return stories.sort((a, b) => b.descendants - a.descendants);
+        }
+
+        // Funktion zum Filtern der Geschichten basierend auf der Punktzahl
+        function filterStoriesByPoints(stories, filter) {
+            if (filter === 'positive') {
+                return stories.filter(story => story.score > 0);
+            } else if (filter === 'zero') {
+                return stories.filter(story => story.score === 0);
+            } else if (filter === 'negative') {
+                return stories.filter(story => story.score < 0);
+            } else {
+                return stories;
+            }
+        }
+
+        // Funktion zum Anzeigen von Autoreninformationen
+        function showAuthorInfo(author) {
+            alert(`Author: ${author}\nAdditional author information could be displayed here.`);
+        }
+
+        // Funktion zum Aktualisieren der Einbettung basierend auf der Sortierung und dem Filter
+        function updateEmbedding(sortedAndFilteredStories) {
+            const htmlContent = `
+                <h2>Top Stories on Hacker News</h2>
+                ${sortedAndFilteredStories.map(story =>
+                    `<div class="story">
+                        <a href="${story.url}" target="_blank">${story.title}</a><br>
+                        <span class="points">Points: ${story.score}</span><br>
+                        <span class="upvotes">Upvotes: ${story.score}</span><br>
+                        <span class="downvotes">Downvotes: ${story.descendants - story.score}</span><br>
+                        <span class="comment">Comments: ${story.descendants}</span><br>
+                        <span class="details">Author: <span class="author-info" onclick="showAuthorInfo('${story.by}')">${story.by}</span>, Time: ${new Date(story.time * 1000).toLocaleString()}</span><br>
+                        <span class="comment"><a href="https://news.ycombinator.com/item?id=${story.id}" target="_blank">Open Comments</a></span>
+                    </div>`
+                ).join('')}
+            `;
+            document.getElementById('hacker-news-widget').innerHTML = htmlContent;
+        }
+
+        // Event-Listener für die Eingabe im Suchfeld
+        document.getElementById('search-input').addEventListener('input', function (event) {
+            const searchQuery = event.target.value.trim();
+            searchHackerNews(searchQuery);
+        });
+
+        // Event-Listener für die Auswahl der Sortierreihenfolge
+        document.getElementById('sort-select').addEventListener('change', function (event) {
+            const sortBy = event.target.value;
+            if (sortBy === 'comments') {
+                // Sortieren nach Anzahl der Kommentare
+                const sortedStories = sortStoriesByComments(stories);
+                const filteredStories = filterStoriesByPoints(sortedStories, document.getElementById('filter-select').value);
+                updateEmbedding(filteredStories);
+            } else {
+                // Zurück zur Standardreihenfolge
+                const filteredStories = filterStoriesByPoints(stories, document.getElementById('filter-select').value);
+                updateEmbedding(filteredStories);
+            }
+        });
+
+        // Event-Listener für die Auswahl des Filters
+        document.getElementById('filter-select').addEventListener('change', function (event) {
+            const filterBy = event.target.value;
+            const sortedStories = sortStoriesByComments(stories);
+            const filteredStories = filterStoriesByPoints(sortedStories, filterBy);
+            updateEmbedding(filteredStories);
+        });
+
+        // Event-Listener für den Dark Mode Toggle
+        document.getElementById('dark-mode-toggle').addEventListener('click', function () {
+            updateDarkMode();
+        });
+
+        // Event-Listener für die Seitennummerierung
+        document.getElementById('prev-page').addEventListener('click', function () {
+            // Implementiere die Logik für die vorherige Seite
+            if (currentPage > 1) {
+                currentPage--;
+                fetchHackerNews(currentPage);
+                updatePageNumber();
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', function () {
+            // Implementiere die Logik für die nächste Seite
+            currentPage++;
+            fetchHackerNews(currentPage);
+            updatePageNumber();
+        });
+
+        // Event-Listener für das Laden weiterer Geschichten
+        document.getElementById('load-more-btn').addEventListener('click', function () {
+            // Implementiere die Logik zum Laden weiterer Geschichten
+            currentPage++;
+            fetchHackerNews(currentPage);
+            updatePageNumber();
+        });
+
+        // Hacker News beim Laden der Seite abrufen
+        fetchHackerNews();
+    </script>
+
+</body>
+<a href="https://app.netlify.com/sites/57e90fc9-c801-4d13-aa52-66729b535aa2/deploys">
+    <img src="https://api.netlify.com/api/v1/badges/57e90fc9-c801-4d13-aa52-66729b535aa2/deploy-status" alt="Netlify Status" />
+  </a>
+  
+</html>

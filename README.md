@@ -1,6 +1,6 @@
 # Hacker News Explorer
 
-https://hacker-news-explorer.netlify.app
+https://hacker-news-explorer.netlify.app or https://kaipfstr.de
 
 Explore the latest stories and discussions on Hacker News with this simple web application.
 

@@ -1,6 +1,6 @@
 # Hacker News Explorer
 
-https://hacker-news-explorer.netlify.app or https://kaipfstr.de
+https://hacker-news-explorer.netlify.app or https://vps.kaipfstr.de
 
 # IMPORTANT!
 

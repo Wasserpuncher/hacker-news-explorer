@@ -5,7 +5,7 @@ https://hacker-news-explorer.netlify.app or https://vps.kaipfstr.de
 # IMPORTANT!
 
 https://hacker-news-explorer.netlify.app no longer receives updates. No longer supported. 
-Kaipfstr.de is updated regularly and is kept up to date!
+vps.Kaipfstr.de is updated regularly and is kept up to date!
 
 Explore the latest stories and discussions on Hacker News with this simple web application.
 
